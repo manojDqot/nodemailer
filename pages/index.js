@@ -1,8 +1,84 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import { useState } from 'react';
+// import { sendWelcomeEmail } from '../emails/account';
+import { sendContactForm } from '../lib/api';
+
+
+const initValues = { name: "", email: "",  };
+const initState = { isLoading: false, error: "", values: initValues };
+
 
 export default function Home() {
+
+  // const [email, setEmail] = useState('');
+  // const [name, setName] = useState('');
+
+
+  const [state, setState] = useState(initState);
+  const [touched, setTouched] = useState({});
+
+
+  const { values, isLoading, error } = state;
+
+  const onBlur = ({ target }) =>
+    setTouched((prev) => ({ ...prev, [target.name]: true }));
+
+  const handleChange = ({ target }) =>
+    setState((prev) => ({
+      ...prev,
+      values: {
+        ...prev.values,
+        [target.name]: target.value,
+      },
+    }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  //  console.log(email,name)
+
+
+   setState((prev) => ({
+    ...prev,
+    isLoading: true,
+  }));
+  try {
+    await sendContactForm(values);
+    setTouched({});
+    setState(initState);
+    toast({
+      title: "Message sent.",
+      status: "success",
+      duration: 2000,
+      position: "top",
+    });
+  } catch (error) {
+    setState((prev) => ({
+      ...prev,
+      isLoading: false,
+      error: error.message,
+    }));
+  }
+
+
+
+
+
+
+
+
+
+  // try {
+  //   await sendContactForm(email,name );
+  // } catch (error) {
+  //   console.log("error", error)
+  // }
+
+
+  };
+
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,59 +87,30 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <form onSubmit={handleSubmit}>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+         <input type="email" placeholder='email' 
+        //  value={email} onChange={e => setEmail(e.target.value)} 
+        
+        name="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={onBlur}
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+         />
+       
+      <input type="text" 
+     name="name"
+      value={values.name}
+          onChange={handleChange}
+          onBlur={onBlur}
+      //  onChange={e => setName(e.target.value)} 
 
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+       />
+      <button type="submit">Sign Up</button>
+    </form>
+   
     </div>
   )
 }
